@@ -1,18 +1,9 @@
-#!/usr/bin/env python
-from app import create_app, db
-from app.models.user import User
+import os
+from app import create_app
 
-app = create_app('development')
-
-@app.shell_context_processor
-def make_shell_context():
-    """Ajoute des objets au shell interactif"""
-    return {'db': db, 'User': User}
+# Utiliser la config de production sur Render
+config_name = 'production' if os.environ.get('RENDER') else 'development'
+app = create_app(config_name)
 
 if __name__ == '__main__':
-    app.run(debug=True)
-
-
-
-
-   
+    app.run()
