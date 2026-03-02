@@ -1,0 +1,105 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('main.index') }}">
+            <i class="fas fa-store me-2"></i>Ma Boutique
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                {% if current_user.is_authenticated %} 
+                   <!-- APRÈS (à mettre) -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('dashboard.index') }}">
+                            <i class="fas fa-chart-pie me-1"></i>Dashboard
+                        </a>
+                    </li>
+
+
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('product.list_products') }}">
+                            <i class="fas fa-box me-1"></i>Produits
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('category.list_categories') }}">
+                            <i class="fas fa-tags me-1"></i>Catégories
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="stockDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-warehouse me-1"></i>Stock
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('stock.add_movement') }}">
+                                <i class="fas fa-plus me-2"></i>Nouveau mouvement
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('stock.history') }}">
+                                <i class="fas fa-history me-2"></i>Historique
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('stock.alerts') }}">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Alertes
+                            </a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('client.list_clients') }}">
+                            <i class="fas fa-users me-1"></i>Clients
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('order.list_orders') }}">
+                            <i class="fas fa-shopping-cart me-1"></i>Commandes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('report.index') }}">
+                            <i class="fas fa-chart-bar me-1"></i>Rapports
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user me-1"></i>{{ current_user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">
+                                <i class="fas fa-id-card me-2"></i>Profil
+                            </a></li>
+                            {% if current_user.is_admin() %}
+                                <li><a class="dropdown-item" href="#">
+                                    <i class="fas fa-cog me-2"></i>Administration
+                                </a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
+                            </a></li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <!-- Liens pour utilisateurs non connectés -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('dashboard.index') }}">
+                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard (demo)
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('product.list_products') }}">
+                            <i class="fas fa-box me-1"></i>Produits
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('stock.alerts') }}">
+                            <i class="fas fa-exclamation-triangle me-1"></i>Alertes
+                        </a>
+                    </li>
+                    <!-- PLUS AUCUN LIEN VERS AUTH.LOGIN ICI -->
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>

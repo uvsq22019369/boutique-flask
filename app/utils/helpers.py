@@ -1,0 +1,20 @@
+from functools import wraps
+from flask import flash, redirect, url_for
+from flask_login import current_user
+
+def role_required(*roles):
+    """Décorateur pour restreindre l'accès selon le rôle"""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if not current_user.is_authenticated:
+                flash('Vous devez être connecté', 'warning')
+                return redirect(url_for('auth.login'))
+            
+            if current_user.role not in roles:
+                flash('Accès non autorisé', 'danger')
+                return redirect(url_for('main.dashboard'))
+            
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator

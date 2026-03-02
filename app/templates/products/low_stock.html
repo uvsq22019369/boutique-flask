@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Stock bas - Ma Boutique{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                Produits en stock bas
+            </h1>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <a href="{{ url_for('product.list_products') }}" class="btn btn-primary">
+                <i class="fas fa-arrow-left me-2"></i>Tous les produits
+            </a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0">Alertes stock ({{ products|length }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if products %}
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Produit</th>
+                                <th>Catégorie</th>
+                                <th>Stock actuel</th>
+                                <th>Seuil</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in products %}
+                            <tr>
+                                <td>{{ product.name }}</td>
+                                <td>{{ product.category.name }}</td>
+                                <td class="fw-bold {% if product.stock_quantity == 0 %}text-danger{% else %}text-warning{% endif %}">
+                                    {{ product.stock_quantity }}
+                                </td>
+                                <td>{{ product.min_stock_alert }}</td>
+                                <td>
+                                    {% if product.stock_quantity == 0 %}
+                                    <span class="badge bg-danger">Rupture</span>
+                                    {% else %}
+                                    <span class="badge bg-warning">Stock bas</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('product.edit_product', id=product.id) }}" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-edit"></i> Ajuster
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p class="text-muted">Aucun produit en stock bas. Tout va bien !</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Historique - {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-box me-2"></i>
+                Historique du produit : {{ product.name }}
+            </h1>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Informations produit</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Catégorie :</strong> {{ product.category.name }}</p>
+                    <p><strong>Prix :</strong> {{ product.price }} FCFA</p>
+                    <p><strong>Stock actuel :</strong> 
+                        <span class="badge {% if product.stock_quantity <= product.min_stock_alert %}bg-warning{% else %}bg-success{% endif %} fs-6">
+                            {{ product.stock_quantity }}
+                        </span>
+                    </p>
+                    <p><strong>Seuil d'alerte :</strong> {{ product.min_stock_alert }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Actions</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{{ url_for('stock.add_movement') }}?product={{ product.id }}" class="btn btn-success">
+                        <i class="fas fa-plus me-2"></i>Ajouter mouvement
+                    </a>
+                    <a href="{{ url_for('product.edit_product', id=product.id) }}" class="btn btn-warning">
+                        <i class="fas fa-edit me-2"></i>Modifier produit
+                    </a>
+                    <a href="{{ url_for('stock.history') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Retour
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Historique des mouvements</h5>
+                </div>
+                <div class="card-body">
+                    {% if movements %}
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Quantité</th>
+                                <th>Stock avant</th>
+                                <th>Stock après</th>
+                                <th>Utilisateur</th>
+                                <th>Raison</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for movement in movements %}
+                            <tr>
+                                <td>{{ movement.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td>
+                                    {% if movement.movement_type.startswith('IN') %}
+                                        <span class="badge bg-success">{{ movement.movement_type }}</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">{{ movement.movement_type }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-bold">{{ movement.quantity }}</td>
+                                <td>{{ movement.stock_before }}</td>
+                                <td>{{ movement.stock_after }}</td>
+                                <td>{{ movement.user.username }}</td>
+                                <td>{{ movement.reason or '-' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p class="text-muted">Aucun mouvement pour ce produit.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

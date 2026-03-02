@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Ma Boutique{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-tachometer-alt me-2"></i>
+                Tableau de bord
+            </h1>
+            <p>Bienvenue, <strong>{{ user.username }}</strong> ({{ user.role }})</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Menu rapide -->
+        <div class="col-md-3 mb-4">
+            <div class="list-group">
+                <a href="#" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-home me-2"></i>Dashboard
+                </a>
+                <a href="#" class="list-group-item list-group-item-action">
+                    <i class="fas fa-box me-2"></i>Produits
+                </a>
+                <a href="#" class="list-group-item list-group-item-action">
+                    <i class="fas fa-arrows-alt-h me-2"></i>Mouvements
+                </a>
+                <a href="#" class="list-group-item list-group-item-action">
+                    <i class="fas fa-shopping-cart me-2"></i>Commandes
+                </a>
+                <a href="#" class="list-group-item list-group-item-action">
+                    <i class="fas fa-users me-2"></i>Clients
+                </a>
+                <a href="#" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chart-bar me-2"></i>Rapports
+                </a>
+            </div>
+        </div>
+        
+        <!-- Contenu du dashboard -->
+        <div class="col-md-9">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card text-white bg-primary">
+                        <div class="card-body">
+                            <h5 class="card-title">Produits</h5>
+                            <p class="card-text display-6">0</p>
+                            <i class="fas fa-box position-absolute bottom-0 end-0 me-3 mb-3 opacity-50" style="font-size: 3rem;"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 mb-4">
+                    <div class="card text-white bg-success">
+                        <div class="card-body">
+                            <h5 class="card-title">Ventes aujourd'hui</h5>
+                            <p class="card-text display-6">0 FCFA</p>
+                            <i class="fas fa-shopping-cart position-absolute bottom-0 end-0 me-3 mb-3 opacity-50" style="font-size: 3rem;"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 mb-4">
+                    <div class="card text-white bg-warning">
+                        <div class="card-body">
+                            <h5 class="card-title">Alertes stock</h5>
+                            <p class="card-text display-6">0</p>
+                            <i class="fas fa-exclamation-triangle position-absolute bottom-0 end-0 me-3 mb-3 opacity-50" style="font-size: 3rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5>Derniers mouvements</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Aucun mouvement pour le moment</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}{{ client.full_name }} - Ma Boutique{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-user-circle me-2"></i>
+                {{ client.full_name }}
+            </h1>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <a href="{{ url_for('client.list_clients') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Retour à la liste
+            </a>
+            <a href="{{ url_for('client.edit_client', id=client.id) }}" class="btn btn-warning">
+                <i class="fas fa-edit me-2"></i>Modifier
+            </a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Informations</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Nom :</strong> {{ client.last_name }}</p>
+                    <p><strong>Prénom :</strong> {{ client.first_name }}</p>
+                    <p><strong>Téléphone :</strong> {{ client.phone }}</p>
+                    {% if client.email %}
+                    <p><strong>Email :</strong> {{ client.email }}</p>
+                    {% endif %}
+                    {% if client.address %}
+                    <p><strong>Adresse :</strong><br>{{ client.address }}</p>
+                    {% endif %}
+                    <p><strong>Client depuis :</strong> {{ client.created_at.strftime('%d/%m/%Y') }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8 mb-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Statistiques</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h3>{{ client.purchase_count }}</h3>
+                                    <p class="mb-0">Achats effectués</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h3>{{ client.total_purchases }} FCFA</h3>
+                                    <p class="mb-0">Total dépensé</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% if client.last_purchase_date %}
+                    <p class="mt-3">
+                        <strong>Dernier achat :</strong> 
+                        {{ client.last_purchase_date.strftime('%d/%m/%Y à %H:%M') }}
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Derniers achats</h5>
+                </div>
+                <div class="card-body">
+                    {% if orders %}
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Montant</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                            <tr>
+                                <td>{{ order.created_at.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ order.total }} FCFA</td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p class="text-muted">Aucun achat pour le moment</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

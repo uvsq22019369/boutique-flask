@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}Rapport des stocks - Ma Boutique{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-boxes me-2"></i>
+                Rapport des stocks
+            </h1>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <a href="{{ url_for('report.export_excel', type='stock') }}" class="btn btn-success">
+                <i class="fas fa-file-excel me-2"></i>Exporter Excel
+            </a>
+            <a href="{{ url_for('report.index') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Retour
+            </a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Total produits</h5>
+                    <p class="card-text display-6">{{ report.summary.total_products }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Valeur totale</h5>
+                    <p class="card-text display-6">{{ report.summary.total_value }} FCFA</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title">Stock bas</h5>
+                    <p class="card-text display-6">{{ report.summary.low_stock_count }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="card text-white bg-danger">
+                <div class="card-body">
+                    <h5 class="card-title">Rupture</h5>
+                    <p class="card-text display-6">{{ report.summary.out_of_stock_count }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Stock par catégorie</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Catégorie</th>
+                                <th>Produits</th>
+                                <th>Valeur</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cat, stats in report.by_category.items() %}
+                            <tr>
+                                <td>{{ cat }}</td>
+                                <td>{{ stats.count }}</td>
+                                <td>{{ stats.value }} FCFA</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Alertes</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Produits en stock bas :</h6>
+                    <ul>
+                        {% for product in report.products if product.status == 'bas' %}
+                        <li>{{ product.name }} - Stock: {{ product.stock }}</li>
+                        {% else %}
+                        <li class="text-muted">Aucun</li>
+                        {% endfor %}
+                    </ul>
+                    
+                    <h6 class="mt-3">Produits en rupture :</h6>
+                    <ul>
+                        {% for product in report.products if product.status == 'rupture' %}
+                        <li>{{ product.name }}</li>
+                        {% else %}
+                        <li class="text-muted">Aucun</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Détail des produits</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Produit</th>
+                                <th>Catégorie</th>
+                                <th>Prix</th>
+                                <th>Stock</th>
+                                <th>Valeur</th>
+                                <th>Statut</th>
+                                <th>Mouvements</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in report.products %}
+                            <tr>
+                                <td>{{ product.name }}</td>
+                                <td>{{ product.category }}</td>
+                                <td>{{ product.price }} FCFA</td>
+                                <td>{{ product.stock }}</td>
+                                <td>{{ product.value }} FCFA</td>
+                                <td>
+                                    {% if product.status == 'rupture' %}
+                                    <span class="badge bg-danger">Rupture</span>
+                                    {% elif product.status == 'bas' %}
+                                    <span class="badge bg-warning">Bas</span>
+                                    {% else %}
+                                    <span class="badge bg-success">Normal</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ product.movements_count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

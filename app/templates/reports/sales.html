@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Rapport des ventes - Ma Boutique{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-chart-line me-2"></i>
+                Rapport des ventes
+            </h1>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="btn-group">
+                <a href="{{ url_for('report.sales_report', days=7) }}" 
+                   class="btn btn-outline-primary {% if days == 7 %}active{% endif %}">7 jours</a>
+                <a href="{{ url_for('report.sales_report', days=30) }}" 
+                   class="btn btn-outline-primary {% if days == 30 %}active{% endif %}">30 jours</a>
+                <a href="{{ url_for('report.sales_report', days=90) }}" 
+                   class="btn btn-outline-primary {% if days == 90 %}active{% endif %}">90 jours</a>
+            </div>
+            <a href="{{ url_for('report.export_excel', type='ventes', days=days) }}" 
+               class="btn btn-success ms-2">
+                <i class="fas fa-file-excel me-2"></i>Exporter Excel
+            </a>
+            <a href="{{ url_for('report.index') }}" class="btn btn-secondary ms-2">
+                <i class="fas fa-arrow-left me-2"></i>Retour
+            </a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Période</h5>
+                    <p class="card-text display-6">
+                        {{ report.period.start.strftime('%d/%m') }} - {{ report.period.end.strftime('%d/%m') }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Chiffre d'affaires</h5>
+                    <p class="card-text display-6">{{ report.summary.total_revenue }} FCFA</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h5 class="card-title">Commandes</h5>
+                    <p class="card-text display-6">{{ report.summary.total_orders }}</p>
+                    <p class="mb-0">Moyenne: {{ report.summary.avg_order_value }} FCFA</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Ventes par jour</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="salesChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Top produits</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Produit</th>
+                                <th>Quantité</th>
+                                <th>Chiffre</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product, stats in report.top_products %}
+                            <tr>
+                                <td>{{ product }}</td>
+                                <td>{{ stats.quantity }}</td>
+                                <td>{{ stats.revenue }} FCFA</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        
+        const salesData = {{ report.sales_by_day|tojson }};
+        const labels = Object.keys(salesData).sort();
+        const counts = labels.map(l => salesData[l].count);
+        const revenues = labels.map(l => salesData[l].revenue);
+        
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels.map(l => {
+                    const [y, m, d] = l.split('-');
+                    return `${d}/${m}`;
+                }),
+                datasets: [
+                    {
+                        label: 'Nombre de ventes',
+                        data: counts,
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Chiffre (FCFA)',
+                        data: revenues,
+                        backgroundColor: 'rgba(40, 167, 69, 0.5)',
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Nombre'
+                        }
+                    },
+                    y1: {
+                        beginAtZero: true,
+                        position: 'right',
+                        grid: {
+                            drawOnChartArea: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'FCFA'
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

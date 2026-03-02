@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Rapports - Ma Boutique{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-chart-bar me-2"></i>
+                Rapports et statistiques
+            </h1>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-line fa-4x text-primary mb-3"></i>
+                    <h5 class="card-title">Rapport des ventes</h5>
+                    <p class="card-text">Analyse des ventes par période, top produits, chiffre d'affaires</p>
+                    <a href="{{ url_for('report.sales_report', days=30) }}" class="btn btn-primary">
+                        <i class="fas fa-eye me-2"></i>Voir
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-boxes fa-4x text-success mb-3"></i>
+                    <h5 class="card-title">Rapport des stocks</h5>
+                    <p class="card-text">État des stocks, valeur, alertes, répartition par catégorie</p>
+                    <a href="{{ url_for('report.stock_report') }}" class="btn btn-success">
+                        <i class="fas fa-eye me-2"></i>Voir
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-exchange-alt fa-4x text-info mb-3"></i>
+                    <h5 class="card-title">Rapport des mouvements</h5>
+                    <p class="card-text">Historique des entrées/sorties, par type, par utilisateur</p>
+                    <a href="{{ url_for('report.movements_report', days=30) }}" class="btn btn-info">
+                        <i class="fas fa-eye me-2"></i>Voir
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-users fa-4x text-warning mb-3"></i>
+                    <h5 class="card-title">Rapport des clients</h5>
+                    <p class="card-text">Statistiques clients, top acheteurs, fidélité</p>
+                    <a href="{{ url_for('report.clients_report') }}" class="btn btn-warning">
+                        <i class="fas fa-eye me-2"></i>Voir
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Aperçu rapide (7 derniers jours)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                        <div class="col-md-6">
+                            <canvas id="productsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Charger les stats
+        fetch('{{ url_for("report.api_stats") }}')
+            .then(response => response.json())
+            .then(data => {
+                // Graphique des ventes
+                const salesCtx = document.getElementById('salesChart').getContext('2d');
+                new Chart(salesCtx, {
+                    type: 'line',
+                    data: {
+                        labels: data.sales.labels,
+                        datasets: [{
+                            label: 'Chiffre d\'affaires (FCFA)',
+                            data: data.sales.revenues,
+                            borderColor: 'rgb(40, 167, 69)',
+                            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                            yAxisID: 'y'
+                        }, {
+                            label: 'Nombre de ventes',
+                            data: data.sales.counts,
+                            borderColor: 'rgb(0, 123, 255)',
+                            backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                            yAxisID: 'y1'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        scales: {
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: {
+                                    display: true,
+                                    text: 'FCFA'
+                                }
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                grid: {
+                                    drawOnChartArea: false,
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Nombre'
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // Graphique des produits
+                const productsCtx = document.getElementById('productsChart').getContext('2d');
+                new Chart(productsCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.top_products.labels,
+                        datasets: [{
+                            data: data.top_products.data,
+                            backgroundColor: [
+                                'rgb(255, 99, 132)',
+                                'rgb(54, 162, 235)',
+                                'rgb(255, 205, 86)',
+                                'rgb(75, 192, 192)',
+                                'rgb(153, 102, 255)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Top produits (quantité vendue)'
+                            }
+                        }
+                    }
+                });
+            });
+    });
+</script>
+{% endblock %}
+{% endblock %}

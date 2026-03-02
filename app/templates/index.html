@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Accueil - Ma Boutique{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12 text-center">
+            <h1 class="display-4">Bienvenue sur votre application de gestion</h1>
+            <p class="lead">Gérez vos stocks, vos ventes et vos clients efficacement</p>
+            
+            {% if not current_user.is_authenticated %}
+                <div class="mt-4">
+                    <!-- ⚠️ LIENS MODIFIÉS - Plus de auth.login -->
+                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary btn-lg me-2">
+                        <i class="fas fa-tachometer-alt me-2"></i>Accéder à la démo
+                    </a>
+                    <a href="{{ url_for('product.list_products') }}" class="btn btn-success btn-lg">
+                        <i class="fas fa-box me-2"></i>Voir les produits
+                    </a>
+                </div>
+            {% else %}
+                <div class="mt-4">
+                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-tachometer-alt me-2"></i>Accéder au tableau de bord
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Cartes des fonctionnalités -->
+    <div class="row mt-5">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-boxes fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Gestion des stocks</h5>
+                    <p class="card-text">Suivez vos produits en temps réel avec alertes automatiques</p>
+                    <a href="{{ url_for('stock.alerts') }}" class="btn btn-outline-primary">Voir les alertes</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-shopping-cart fa-3x text-success mb-3"></i>
+                    <h5 class="card-title">Gestion des ventes</h5>
+                    <p class="card-text">Interface caisse intuitive et suivi des commandes</p>
+                    <a href="{{ url_for('product.list_products') }}" class="btn btn-outline-success">Voir les produits</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-chart-line fa-3x text-info mb-3"></i>
+                    <h5 class="card-title">Rapports</h5>
+                    <p class="card-text">Analyses détaillées de vos performances</p>
+                    <a href="{{ url_for('stock.history') }}" class="btn btn-outline-info">Voir l'historique</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
