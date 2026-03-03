@@ -1,14 +1,14 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, current_user, logout_user, login_required
-from app import db, bcrypt
+from app import db
 from app.models.user import User
-from app.forms.auth_forms import LoginForm, RegistrationForm
+from app.forms.auth_forms import LoginForm
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
-""" @auth_bp.route('/login', methods=['GET', 'POST'])
+@auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    #Page de connexion
+    """Page de connexion"""
     # Si l'utilisateur est déjà connecté, rediriger vers dashboard
     if current_user.is_authenticated:
         return redirect(url_for('dashboard.index'))
@@ -30,11 +30,13 @@ def login():
         else:
             flash('Nom d\'utilisateur ou mot de passe incorrect', 'danger')
     
-    return render_template('auth/login.html', form=form) """
+    return render_template('auth/login.html', form=form)
 
+# Route d'inscription commentée (désactivée)
+"""
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
-    """Page d'inscription"""
+    #Page d'inscription
     if current_user.is_authenticated:
         return redirect(url_for('dashboard.index'))
     
@@ -45,9 +47,9 @@ def register():
         user = User(
             username=form.username.data,
             email=form.email.data,
-            role='cashier'  # Par défaut, pas admin
+            role='cashier'
         )
-        user.password = form.password.data  # Le setter va hasher
+        user.password = form.password.data
         
         db.session.add(user)
         db.session.commit()
@@ -56,6 +58,7 @@ def register():
         return redirect(url_for('auth.login'))
     
     return render_template('auth/register.html', form=form)
+"""
 
 @auth_bp.route('/logout')
 @login_required
