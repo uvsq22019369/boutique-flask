@@ -1,41 +1,44 @@
 from app import db
+from datetime import datetime
 
 class StockMovement(db.Model):
     __tablename__ = 'stock_movements'
     
     id = db.Column(db.Integer, primary_key=True)
     
-    # Références (QUOI)
+    # Références
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
-    
-    # QUI a fait le mouvement
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     
+    # Multi-boutiques
+    shop_id = db.Column(db.Integer, db.ForeignKey('shops.id'), nullable=False)
+    
     # Optionnel : lié à une commande
-    # ⚠️ COMMENTÉ TEMPORAIREMENT - on l'activera quand la table orders existera
-    #order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=True)
     
     # Type de mouvement
     movement_type = db.Column(db.String(20), nullable=False)
+    # IN_PURCHASE, IN_RETURN, IN_ADJUSTMENT
+    # OUT_SALE, OUT_DAMAGED, OUT_RETURN, OUT_ADJUSTMENT
     
-    # Quantité (toujours positive, le type indique + ou -)
+    # Quantité (toujours positive)
     quantity = db.Column(db.Integer, nullable=False)
     
-    # État du stock AVANT et APRÈS (instantané)
+    # État du stock AVANT et APRÈS
     stock_before = db.Column(db.Integer, nullable=False)
     stock_after = db.Column(db.Integer, nullable=False)
     
     # Informations supplémentaires
-    reason = db.Column(db.String(200))
-    notes = db.Column(db.Text)
+    reason = db.Column(db.String(200), nullable=True)
+    notes = db.Column(db.Text, nullable=True)
     
     # Horodatage
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Relations
-    product = db.relationship('Product', backref='movements')
+    # Relations - CORRIGÉ : backref='stock_movements' pour correspondre à Product
+    product = db.relationship('Product', backref='stock_movements')
     user = db.relationship('User', backref='stock_movements')
+    order = db.relationship('Order', backref='stock_movements')
     
     def __repr__(self):
         return f'<StockMovement {self.movement_type} {self.quantity} - Prod {self.product_id}>'
-    

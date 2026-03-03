@@ -9,9 +9,23 @@
             <h1 class="mb-4">
                 <i class="fas fa-box me-2"></i>
                 Gestion des produits
+                {% if current_user.is_authenticated and current_user.shop %}
+                    <small class="text-muted">- {{ current_user.shop.name }}</small>
+                {% endif %}
             </h1>
         </div>
     </div>
+    
+    {% if current_user.is_authenticated and current_user.is_super_admin() %}
+    <div class="alert alert-info mb-4">
+        <i class="fas fa-info-circle me-2"></i>
+        Affichage des produits de la boutique 
+        <strong>{{ current_user.shop.name if current_user.shop else 'Toutes les boutiques' }}</strong>
+        {% if not current_user.shop %}
+        <br><small>Connectez-vous en tant qu'admin boutique pour voir des données spécifiques.</small>
+        {% endif %}
+    </div>
+    {% endif %}
     
     <div class="row mb-4">
         <div class="col-md-8">
@@ -35,7 +49,9 @@
                     </option>
                     {% endfor %}
                 </select>
-                <button type="submit" class="btn btn-primary">Filtrer</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i>
+                </button>
             </form>
         </div>
     </div>
@@ -81,11 +97,15 @@
                                 </td>
                                 <td>
                                     <a href="{{ url_for('product.edit_product', id=product.id) }}" 
-                                       class="btn btn-sm btn-warning">
+                                       class="btn btn-sm btn-warning" title="Modifier">
                                         <i class="fas fa-edit"></i>
                                     </a>
+                                    <a href="{{ url_for('stock.product_history', product_id=product.id) }}" 
+                                       class="btn btn-sm btn-info" title="Historique">
+                                        <i class="fas fa-history"></i>
+                                    </a>
                                     <a href="{{ url_for('product.delete_product', id=product.id) }}" 
-                                       class="btn btn-sm btn-danger"
+                                       class="btn btn-sm btn-danger" title="Supprimer"
                                        onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')">
                                         <i class="fas fa-trash"></i>
                                     </a>

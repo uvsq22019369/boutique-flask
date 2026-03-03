@@ -6,9 +6,9 @@ from app.forms.auth_forms import LoginForm, RegistrationForm
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
-@auth_bp.route('/login', methods=['GET', 'POST'])
+""" @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    """Page de connexion"""
+    #Page de connexion
     # Si l'utilisateur est déjà connecté, rediriger vers dashboard
     if current_user.is_authenticated:
         return redirect(url_for('dashboard.index'))
@@ -30,7 +30,7 @@ def login():
         else:
             flash('Nom d\'utilisateur ou mot de passe incorrect', 'danger')
     
-    return render_template('auth/login.html', form=form)
+    return render_template('auth/login.html', form=form) """
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():

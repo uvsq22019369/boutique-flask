@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des boutiques{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-store me-2"></i>
+                Gestion des boutiques
+            </h1>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <a href="{{ url_for('shop.add_shop') }}" class="btn btn-success">
+                <i class="fas fa-plus me-2"></i>Nouvelle boutique
+            </a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Liste des boutiques</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nom</th>
+                                <th>Slug</th>
+                                <th>Téléphone</th>
+                                <th>Email</th>
+                                <th>Produits</th>
+                                <th>Clients</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for shop in shops %}
+                            <tr>
+                                <td>{{ shop.id }}</td>
+                                <td>{{ shop.name }}</td>
+                                <td>{{ shop.slug }}</td>
+                                <td>{{ shop.phone or '-' }}</td>
+                                <td>{{ shop.email or '-' }}</td>
+                                <td>{{ shop.products|length }}</td>
+                                <td>{{ shop.clients|length }}</td>
+                                <td>
+                                    {% if shop.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Désactivée</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <!-- ⭐ Bouton pour activer/désactiver -->
+                                    <a href="{{ url_for('shop.toggle_shop', id=shop.id) }}" 
+                                       class="btn btn-sm {% if shop.is_active %}btn-warning{% else %}btn-success{% endif %}"
+                                       onclick="return confirm('{% if shop.is_active %}Désactiver{% else %}Activer{% endif %} cette boutique ?')">
+                                        {% if shop.is_active %}
+                                            <i class="fas fa-ban me-1"></i>Désactiver
+                                        {% else %}
+                                            <i class="fas fa-check me-1"></i>Activer
+                                        {% endif %}
+                                    </a>
+                                    <a href="#" class="btn btn-sm btn-danger" 
+                                       onclick="return confirm('Supprimer cette boutique ?')">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

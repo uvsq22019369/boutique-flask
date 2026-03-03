@@ -8,8 +8,22 @@
         <div class="col-12">
             <h1 class="mb-4">
                 <i class="fas fa-chart-pie me-2"></i>
-                Tableau de bord avancé
+                Tableau de bord 
+                {% if current_user.is_authenticated and current_user.shop %}
+                    <small class="text-muted">- {{ current_user.shop.name }}</small>
+                {% endif %}
             </h1>
+            
+            {% if current_user.is_authenticated and current_user.is_super_admin() %}
+            <div class="alert alert-info mb-4">
+                <i class="fas fa-crown me-2"></i>
+                <strong>Super Admin :</strong> Vous voyez les données de toutes les boutiques.
+                {% if request.args.get('shop_id') %}
+                    Filtre actif : boutique ID {{ request.args.get('shop_id') }}
+                    <a href="{{ url_for('dashboard.index') }}" class="alert-link">Voir tout</a>
+                {% endif %}
+            </div>
+            {% endif %}
         </div>
     </div>
     
@@ -150,7 +164,7 @@
                             {% for movement in recent_movements %}
                             <tr>
                                 <td>{{ movement.created_at.strftime('%H:%M %d/%m') }}</td>
-                                <td>{{ movement.product.name }}</td>
+                                <td>{{ movement.related_product.name }}</td>
                                 <td>
                                     {% if movement.movement_type.startswith('IN') %}
                                         <span class="badge bg-success">Entrée</span>
@@ -171,77 +185,106 @@
             </div>
         </div>
     </div>
+    
+    <!-- Statistiques supplémentaires (optionnel) -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Ventes aujourd'hui</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h3>{{ stats.today_orders if stats.today_orders else 0 }} commandes</h3>
+                        </div>
+                        <div class="col-md-6">
+                            <h3>{{ stats.today_revenue if stats.today_revenue else 0 }} FCFA</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        console.log("📊 Dashboard chargé pour " + window.shopName);
+        
         // Graphique des mouvements
-        const movementsCtx = document.getElementById('movementsChart').getContext('2d');
-        
-        const movementsData = {{ movements_by_day|tojson }};
-        
-        new Chart(movementsCtx, {
-            type: 'line',
-            data: {
-                labels: movementsData.map(d => d.date),
-                datasets: [
-                    {
-                        label: 'Entrées',
-                        data: movementsData.map(d => d.entries),
-                        borderColor: 'rgb(40, 167, 69)',
-                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
-                        tension: 0.1
-                    },
-                    {
-                        label: 'Sorties',
-                        data: movementsData.map(d => d.exits),
-                        borderColor: 'rgb(220, 53, 69)',
-                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
-                        tension: 0.1
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
+        const movementsCtx = document.getElementById('movementsChart');
+        if (movementsCtx) {
+            const movementsCtx2 = movementsCtx.getContext('2d');
+            
+            const movementsData = {{ movements_by_day|tojson }};
+            
+            new Chart(movementsCtx2, {
+                type: 'line',
+                data: {
+                    labels: movementsData.map(d => d.date),
+                    datasets: [
+                        {
+                            label: 'Entrées',
+                            data: movementsData.map(d => d.entries),
+                            borderColor: 'rgb(40, 167, 69)',
+                            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Sorties',
+                            data: movementsData.map(d => d.exits),
+                            borderColor: 'rgb(220, 53, 69)',
+                            backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
         
         // Graphique des catégories
-        const categoryCtx = document.getElementById('categoryChart').getContext('2d');
-        
-        const categoryData = {{ stock_by_category|tojson }};
-        
-        new Chart(categoryCtx, {
-            type: 'doughnut',
-            data: {
-                labels: categoryData.map(d => d.name),
-                datasets: [{
-                    data: categoryData.map(d => d.total),
-                    backgroundColor: [
-                        'rgb(255, 99, 132)',
-                        'rgb(54, 162, 235)',
-                        'rgb(255, 205, 86)',
-                        'rgb(75, 192, 192)',
-                        'rgb(153, 102, 255)'
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
+        const categoryCtx = document.getElementById('categoryChart');
+        if (categoryCtx) {
+            const categoryCtx2 = categoryCtx.getContext('2d');
+            
+            const categoryData = {{ stock_by_category|tojson }};
+            
+            new Chart(categoryCtx2, {
+                type: 'doughnut',
+                data: {
+                    labels: categoryData.map(d => d.name),
+                    datasets: [{
+                        data: categoryData.map(d => d.total),
+                        backgroundColor: [
+                            'rgb(255, 99, 132)',
+                            'rgb(54, 162, 235)',
+                            'rgb(255, 205, 86)',
+                            'rgb(75, 192, 192)',
+                            'rgb(153, 102, 255)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
     });
 </script>
 {% endblock %}

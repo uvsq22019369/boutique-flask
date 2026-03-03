@@ -7,26 +7,21 @@ from app.models.order_item import OrderItem
 from app.models.client import Client
 from datetime import datetime, timedelta
 import pandas as pd
-import os
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4, landscape
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
 
 class ReportService:
-    """Service pour générer tous les rapports"""
+    """Service pour générer tous les rapports - Multi-boutiques"""
     
     @staticmethod
-    def get_sales_report(start_date=None, end_date=None):
-        """Rapport des ventes sur une période"""
+    def get_sales_report(shop_id, start_date=None, end_date=None):
+        """Rapport des ventes sur une période pour une boutique"""
         if not end_date:
             end_date = datetime.now()
         if not start_date:
             start_date = end_date - timedelta(days=30)
         
-        # Récupérer les commandes de la période
+        # Récupérer les commandes de la boutique
         orders = Order.query.filter(
+            Order.shop_id == shop_id,
             Order.created_at >= start_date,
             Order.created_at <= end_date,
             Order.status == 'paid'
@@ -80,9 +75,9 @@ class ReportService:
         }
     
     @staticmethod
-    def get_stock_report():
-        """Rapport complet des stocks"""
-        products = Product.query.all()
+    def get_stock_report(shop_id):
+        """Rapport complet des stocks pour une boutique"""
+        products = Product.query.filter_by(shop_id=shop_id).all()
         
         report = {
             'summary': {
@@ -96,7 +91,7 @@ class ReportService:
         }
         
         # Par catégorie
-        categories = Category.query.all()
+        categories = Category.query.filter_by(shop_id=shop_id).all()
         for cat in categories:
             cat_products = [p for p in products if p.category_id == cat.id]
             report['by_category'][cat.name] = {
@@ -107,23 +102,25 @@ class ReportService:
         # Détail des produits
         for product in products:
             report['products'].append({
+                'id': product.id,
                 'name': product.name,
                 'category': product.category.name,
                 'price': product.price,
                 'stock': product.stock_quantity,
                 'value': product.price * product.stock_quantity,
                 'status': product.stock_status(),
-                'movements_count': len(product.movements)
+                'movements_count': len(product.stock_movements)
             })
         
         return report
     
     @staticmethod
-    def get_movements_report(days=30):
-        """Rapport des mouvements"""
+    def get_movements_report(shop_id, days=30):
+        """Rapport des mouvements pour une boutique"""
         since = datetime.now() - timedelta(days=days)
         
         movements = StockMovement.query.filter(
+            StockMovement.shop_id == shop_id,
             StockMovement.created_at >= since
         ).all()
         
@@ -157,7 +154,7 @@ class ReportService:
             if len(report['recent']) < 20:
                 report['recent'].append({
                     'date': mov.created_at,
-                    'product': mov.product.name,
+                    'product': mov.related_product.name,
                     'type': mov.movement_type,
                     'quantity': mov.quantity,
                     'user': username
@@ -166,9 +163,9 @@ class ReportService:
         return report
     
     @staticmethod
-    def get_client_report():
-        """Rapport des clients"""
-        clients = Client.query.all()
+    def get_client_report(shop_id):
+        """Rapport des clients pour une boutique"""
+        clients = Client.query.filter_by(shop_id=shop_id).all()
         
         report = {
             'total_clients': len(clients),
@@ -182,6 +179,7 @@ class ReportService:
         for client in top:
             if client.total_purchases > 0:
                 report['top_clients'].append({
+                    'id': client.id,
                     'name': client.full_name,
                     'phone': client.phone,
                     'purchases': client.purchase_count,

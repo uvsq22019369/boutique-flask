@@ -1,7 +1,12 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container">
         <a class="navbar-brand" href="{{ url_for('main.index') }}">
-            <i class="fas fa-store me-2"></i>Ma Boutique
+            <i class="fas fa-store me-2"></i>
+            {% if current_user.is_authenticated and current_user.shop %}
+                {{ current_user.shop.name }}
+            {% else %}
+                Ma Boutique
+            {% endif %}
         </a>
         
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -10,26 +15,29 @@
         
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                {% if current_user.is_authenticated %} 
-                   <!-- APRÈS (à mettre) -->
+                {% if current_user.is_authenticated %}
+                    <!-- Dashboard -->
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('dashboard.index') }}">
                             <i class="fas fa-chart-pie me-1"></i>Dashboard
                         </a>
                     </li>
 
-
-
+                    <!-- Produits -->
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('product.list_products') }}">
                             <i class="fas fa-box me-1"></i>Produits
                         </a>
                     </li>
+                    
+                    <!-- Catégories -->
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('category.list_categories') }}">
                             <i class="fas fa-tags me-1"></i>Catégories
                         </a>
                     </li>
+                    
+                    <!-- Stock Dropdown -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="stockDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="fas fa-warehouse me-1"></i>Stock
@@ -46,32 +54,63 @@
                             </a></li>
                         </ul>
                     </li>
+                    
+                    <!-- Clients -->
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('client.list_clients') }}">
                             <i class="fas fa-users me-1"></i>Clients
                         </a>
                     </li>
+                    
+                    <!-- Commandes -->
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('order.list_orders') }}">
                             <i class="fas fa-shopping-cart me-1"></i>Commandes
                         </a>
                     </li>
+                    
+                    <!-- Rapports -->
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('report.index') }}">
                             <i class="fas fa-chart-bar me-1"></i>Rapports
                         </a>
                     </li>
+                    
+                    <!-- ⭐ GESTION DES BOUTIQUES (UNIQUEMENT POUR SUPER ADMIN) -->
+                    {% if current_user.is_super_admin() %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('shop.list_shops') }}">
+                            <i class="fas fa-store me-1"></i>Boutiques
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    <!-- User Dropdown -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="fas fa-user me-1"></i>{{ current_user.username }}
+                            {% if current_user.is_super_admin() %}
+                                <span class="badge bg-warning text-dark">Super Admin</span>
+                            {% endif %}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <div class="dropdown-header">
+                                    <strong>Boutique:</strong> 
+                                    {% if current_user.shop %}
+                                        {{ current_user.shop.name }}
+                                    {% else %}
+                                        Toutes les boutiques
+                                    {% endif %}
+                                </div>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="#">
                                 <i class="fas fa-id-card me-2"></i>Profil
                             </a></li>
-                            {% if current_user.is_admin() %}
-                                <li><a class="dropdown-item" href="#">
-                                    <i class="fas fa-cog me-2"></i>Administration
+                            {% if current_user.is_super_admin() %}
+                                <li><a class="dropdown-item" href="{{ url_for('shop.list_shops') }}">
+                                    <i class="fas fa-store me-2"></i>Gérer les boutiques
                                 </a></li>
                             {% endif %}
                             <li><hr class="dropdown-divider"></li>
@@ -97,7 +136,11 @@
                             <i class="fas fa-exclamation-triangle me-1"></i>Alertes
                         </a>
                     </li>
-                    <!-- PLUS AUCUN LIEN VERS AUTH.LOGIN ICI -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.login') }}">
+                            <i class="fas fa-sign-in-alt me-1"></i>Connexion
+                        </a>
+                    </li>
                 {% endif %}
             </ul>
         </div>

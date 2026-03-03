@@ -1,25 +1,36 @@
 from app import db
+from datetime import datetime
 
 class Product(db.Model):
     __tablename__ = 'products'
     
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
-    description = db.Column(db.Text)
+    description = db.Column(db.Text, nullable=True)
     
     # Prix et stock
     price = db.Column(db.Float, nullable=False)
     stock_quantity = db.Column(db.Integer, default=0)
     min_stock_alert = db.Column(db.Integer, default=5)
     
-    # Références
+    # Multi-boutiques
+    shop_id = db.Column(db.Integer, db.ForeignKey('shops.id'), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
+    
+    # Références
     barcode = db.Column(db.String(50), unique=True, nullable=True)
     
     # Traçabilité
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'))
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    updated_at = db.Column(db.DateTime, onupdate=db.func.current_timestamp())
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+    
+    # Relations - CORRIGÉ : backref='stock_movements' au lieu de 'movements'
+    movements = db.relationship('StockMovement', backref='related_product', lazy=True, 
+                               cascade='all, delete-orphan')
+    
+    # Contrainte d'unicité : un produit doit avoir un nom unique dans une boutique
+    __table_args__ = (db.UniqueConstraint('name', 'shop_id', name='unique_product_per_shop'),)
     
     def is_low_stock(self):
         """Vérifie si le stock est bas"""

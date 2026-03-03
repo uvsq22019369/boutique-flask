@@ -15,14 +15,10 @@ class OrderItem(db.Model):
     quantity = db.Column(db.Integer, nullable=False)
     discount = db.Column(db.Float, default=0)  # Réduction ligne
     
-    # Calculs
     @property
     def subtotal(self):
         """Total pour cette ligne"""
         return (self.unit_price * self.quantity) - self.discount
-    
-    # Relations
-    product = db.relationship('Product')
     
     def __repr__(self):
         return f'<OrderItem {self.product_name} x{self.quantity}>'

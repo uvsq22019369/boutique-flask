@@ -5,7 +5,6 @@ from app.utils.helpers import role_required
 from datetime import datetime, timedelta
 import pandas as pd
 import io
-import os
 
 report_bp = Blueprint('report', __name__, url_prefix='/rapports')
 
@@ -20,37 +19,41 @@ def index():
 @login_required
 @role_required('admin', 'manager')
 def sales_report():
-    """Rapport des ventes"""
+    """Rapport des ventes de la boutique"""
     days = request.args.get('days', 30, type=int)
     end_date = datetime.now()
     start_date = end_date - timedelta(days=days)
     
-    report = ReportService.get_sales_report(start_date, end_date)
+    report = ReportService.get_sales_report(
+        current_user.shop_id,  # ⭐ Passer shop_id
+        start_date, 
+        end_date
+    )
     return render_template('reports/sales.html', report=report, days=days)
 
 @report_bp.route('/stock')
 @login_required
 @role_required('admin', 'manager')
 def stock_report():
-    """Rapport des stocks"""
-    report = ReportService.get_stock_report()
+    """Rapport des stocks de la boutique"""
+    report = ReportService.get_stock_report(current_user.shop_id)  # ⭐ Passer shop_id
     return render_template('reports/stock.html', report=report)
 
 @report_bp.route('/mouvements')
 @login_required
 @role_required('admin', 'manager')
 def movements_report():
-    """Rapport des mouvements"""
+    """Rapport des mouvements de la boutique"""
     days = request.args.get('days', 30, type=int)
-    report = ReportService.get_movements_report(days)
+    report = ReportService.get_movements_report(current_user.shop_id, days)  # ⭐ Passer shop_id
     return render_template('reports/movements.html', report=report, days=days)
 
 @report_bp.route('/clients')
 @login_required
 @role_required('admin', 'manager')
 def clients_report():
-    """Rapport des clients"""
-    report = ReportService.get_client_report()
+    """Rapport des clients de la boutique"""
+    report = ReportService.get_client_report(current_user.shop_id)  # ⭐ Passer shop_id
     return render_template('reports/clients.html', report=report)
 
 @report_bp.route('/export/excel/<type>')
@@ -59,17 +62,15 @@ def clients_report():
 def export_excel(type):
     """Export Excel des rapports"""
     if type == 'stock':
-        report = ReportService.get_stock_report()
+        report = ReportService.get_stock_report(current_user.shop_id)
         
         # Créer DataFrame pour les produits
         df = pd.DataFrame(report['products'])
         
-        # Créer un fichier Excel en mémoire
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
             df.to_excel(writer, sheet_name='Stock', index=False)
             
-            # Ajouter un résumé
             summary_df = pd.DataFrame([
                 ['Total produits', report['summary']['total_products']],
                 ['Valeur totale', f"{report['summary']['total_value']:,.0f} FCFA"],
@@ -80,7 +81,7 @@ def export_excel(type):
         
         output.seek(0)
         
-        filename = f"rapport_stock_{datetime.now().strftime('%Y%m%d')}.xlsx"
+        filename = f"rapport_stock_{current_user.shop_id}_{datetime.now().strftime('%Y%m%d')}.xlsx"
         return send_file(
             output,
             as_attachment=True,
@@ -93,9 +94,8 @@ def export_excel(type):
         end_date = datetime.now()
         start_date = end_date - timedelta(days=days)
         
-        report = ReportService.get_sales_report(start_date, end_date)
+        report = ReportService.get_sales_report(current_user.shop_id, start_date, end_date)
         
-        # Créer DataFrames
         days_df = pd.DataFrame([
             {'Date': k, 'Ventes': v['count'], 'Chiffre': v['revenue']}
             for k, v in report['sales_by_day'].items()
@@ -120,7 +120,7 @@ def export_excel(type):
         
         output.seek(0)
         
-        filename = f"rapport_ventes_{datetime.now().strftime('%Y%m%d')}.xlsx"
+        filename = f"rapport_ventes_{current_user.shop_id}_{datetime.now().strftime('%Y%m%d')}.xlsx"
         return send_file(
             output,
             as_attachment=True,
@@ -138,8 +138,9 @@ def api_stats():
     end_date = datetime.now()
     start_date = end_date - timedelta(days=days)
     
-    # Ventes par jour
+    # Commandes de la boutique uniquement
     orders = Order.query.filter(
+        Order.shop_id == current_user.shop_id,
         Order.created_at >= start_date,
         Order.created_at <= end_date,
         Order.status == 'paid'
@@ -156,7 +157,7 @@ def api_stats():
             sales_data[day]['count'] += 1
             sales_data[day]['revenue'] += order.total
     
-    # Top produits
+    # Top produits de la boutique
     product_sales = {}
     for order in orders:
         for item in order.items:

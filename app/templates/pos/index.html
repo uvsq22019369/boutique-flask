@@ -23,7 +23,7 @@
                         Panier
                     </h5>
                 </div>
-                <div class="card-body" style="min-height: 300px;">
+                <div class="card-body" style="min-height: 300px; max-height: 400px; overflow-y: auto;">
                     <div id="cart-items">
                         {% if cart %}
                             {% for item in cart %}
@@ -42,12 +42,12 @@
                             </div>
                             {% endfor %}
                         {% else %}
-                            <p class="text-muted">Panier vide</p>
+                            <p class="text-muted text-center">Panier vide</p>
                         {% endif %}
                     </div>
                 </div>
                 <div class="card-footer">
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="mb-0">Total:</h5>
                         <h5 class="mb-0 text-primary" id="cart-total">{{ total }} FCFA</h5>
                     </div>
@@ -78,11 +78,11 @@
                                    placeholder="Remise" step="100" value="0">
                         </div>
                         
-                        <button type="submit" class="btn btn-success w-100" {% if not cart %}disabled{% endif %}>
+                        <button type="submit" class="btn btn-success w-100 mb-2" {% if not cart %}disabled{% endif %}>
                             <i class="fas fa-check me-2"></i>Finaliser la vente
                         </button>
                         
-                        <button type="button" class="btn btn-secondary w-100 mt-2" id="clear-cart">
+                        <button type="button" class="btn btn-secondary w-100" id="clear-cart" {% if not cart %}disabled{% endif %}>
                             <i class="fas fa-trash me-2"></i>Vider le panier
                         </button>
                     </form>
@@ -103,7 +103,7 @@
                     <input type="text" id="search-product" class="form-control mb-3" 
                            placeholder="Rechercher un produit...">
                     
-                    <div class="row" id="products-list">
+                    <div class="row" id="products-list" style="max-height: 500px; overflow-y: auto;">
                         {% for product in products %}
                         <div class="col-md-4 mb-3 product-card" 
                              data-name="{{ product.name|lower }}">
@@ -132,33 +132,41 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
-<!-- Script pour la caisse -->
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        console.log("🚀 Caisse chargée");
+        
         // Recherche de produits
         const searchInput = document.getElementById('search-product');
         const productCards = document.querySelectorAll('.product-card');
         
-        searchInput.addEventListener('keyup', function() {
-            const searchTerm = this.value.toLowerCase();
-            
-            productCards.forEach(card => {
-                const productName = card.dataset.name;
-                if (productName.includes(searchTerm)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function() {
+                const searchTerm = this.value.toLowerCase();
+                
+                productCards.forEach(card => {
+                    const productName = card.dataset.name;
+                    if (productName.includes(searchTerm)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
             });
-        });
+        }
         
         // Ajouter au panier
         document.querySelectorAll('.add-to-cart').forEach(button => {
             button.addEventListener('click', function() {
                 const productId = this.dataset.productId;
-                const quantity = document.getElementById(`qty-${productId}`).value;
+                const quantityInput = document.getElementById(`qty-${productId}`);
+                
+                if (!quantityInput) return;
+                
+                const quantity = quantityInput.value;
                 
                 fetch('{{ url_for("order.add_to_cart") }}', {
                     method: 'POST',
@@ -175,32 +183,65 @@
                     if (data.success) {
                         location.reload();
                     } else {
-                        alert(data.error);
+                        alert('❌ ' + data.error);
                     }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    alert('❌ Erreur de connexion');
                 });
             });
         });
         
-        // Retirer du panier
+        // ⭐ RETIRER UN ARTICLE DU PANIER (VERSION CORRIGÉE)
         document.querySelectorAll('.remove-item').forEach(button => {
             button.addEventListener('click', function() {
                 const productId = this.dataset.productId;
+                console.log("🔄 Tentative de suppression de l'article ID:", productId);
                 
-                fetch(`{{ url_for("order.remove_from_cart", product_id=0) }}`.replace('0', productId), {
-                    method: 'POST'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
+                // Demander confirmation
+                if (!confirm('Retirer cet article du panier ?')) {
+                    return;
+                }
+                
+                // URL en dur pour éviter les problèmes avec url_for
+                const url = `/commandes/api/remove-from-cart/${productId}`;
+                console.log("📡 URL appelée:", url);
+                
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
                     }
+                })
+                .then(response => {
+                    console.log("📥 Statut réponse:", response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("📦 Données reçues:", data);
+                    if (data.success) {
+                        console.log("✅ Article retiré, rechargement...");
+                        location.reload();
+                    } else {
+                        alert('❌ ' + (data.error || 'Erreur inconnue'));
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Erreur fetch:', error);
+                    alert('❌ Erreur de connexion');
                 });
             });
         });
         
         // Vider le panier
-        document.getElementById('clear-cart').addEventListener('click', function() {
-            if (confirm('Vider le panier ?')) {
+        const clearCartBtn = document.getElementById('clear-cart');
+        if (clearCartBtn) {
+            clearCartBtn.addEventListener('click', function() {
+                if (!confirm('Vider le panier ?')) {
+                    return;
+                }
+                
                 fetch('{{ url_for("order.clear_cart") }}', {
                     method: 'POST'
                 })
@@ -209,10 +250,13 @@
                     if (data.success) {
                         location.reload();
                     }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    alert('❌ Erreur de connexion');
                 });
-            }
-        });
+            });
+        }
     });
 </script>
-{% endblock %}
 {% endblock %}

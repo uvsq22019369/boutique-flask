@@ -1,42 +1,94 @@
-<!-- Footer -->
+<!-- Footer dynamique multi-boutiques -->
 <footer class="bg-light text-center text-lg-start mt-5">
     <div class="container p-4">
         <div class="row">
-            <div class="col-lg-6 col-md-12 mb-4 mb-md-0">
-                <h5 class="text-uppercase">Ma Boutique</h5>
-                <p>
+            <div class="col-lg-4 col-md-6 mb-4 mb-md-0">
+                <h5 class="text-uppercase fw-bold text-primary">
+                    <i class="fas fa-store me-2"></i>
+                    {% if current_user.is_authenticated and current_user.shop %}
+                        {{ current_user.shop.name }}
+                    {% else %}
+                        MA BOUTIQUE
+                    {% endif %}
+                </h5>
+                <p class="text-muted">
                     Application de gestion de boutique développée avec Flask.
                     Gérez vos stocks, ventes, clients et commandes efficacement.
                 </p>
+                {% if current_user.is_authenticated and current_user.shop %}
+                    <p class="small text-muted">
+                        <i class="fas fa-map-marker-alt me-2"></i>{{ current_user.shop.address or 'Adresse non renseignée' }}<br>
+                        <i class="fas fa-phone me-2"></i>{{ current_user.shop.phone or 'Téléphone non renseigné' }}<br>
+                        <i class="fas fa-envelope me-2"></i>{{ current_user.shop.email or 'Email non renseigné' }}
+                    </p>
+                {% endif %}
             </div>
             
-            <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
-                <h5 class="text-uppercase">Liens utiles</h5>
+            <div class="col-lg-4 col-md-6 mb-4 mb-md-0">
+                <h5 class="text-uppercase fw-bold">
+                    <i class="fas fa-link me-2"></i>LIENS UTILES
+                </h5>
                 <ul class="list-unstyled mb-0">
-                    <li>
-                        <a href="{{ url_for('main.index') }}" class="text-dark">Accueil</a>
+                    <li class="mb-2">
+                        <a href="{{ url_for('main.index') }}" class="text-decoration-none text-dark">
+                            <i class="fas fa-home me-2 text-primary"></i>Accueil
+                        </a>
                     </li>
-                    <li>
-                        <a href="{{ url_for('product.list_products') }}" class="text-dark">Produits</a>
+                    <li class="mb-2">
+                        <a href="{{ url_for('product.list_products') }}" class="text-decoration-none text-dark">
+                            <i class="fas fa-box me-2 text-success"></i>Produits
+                        </a>
                     </li>
-                    <li>
-                        <a href="{{ url_for('stock.alerts') }}" class="text-dark">Alertes</a>
+                    <li class="mb-2">
+                        <a href="{{ url_for('stock.alerts') }}" class="text-decoration-none text-dark">
+                            <i class="fas fa-exclamation-triangle me-2 text-warning"></i>Alertes
+                        </a>
                     </li>
                 </ul>
             </div>
             
-            <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
-                <h5 class="text-uppercase">Contact</h5>
+            <div class="col-lg-4 col-md-12 mb-4 mb-md-0">
+                <h5 class="text-uppercase fw-bold">
+                    <i class="fas fa-address-card me-2"></i>CONTACT
+                </h5>
                 <ul class="list-unstyled">
-                    <li><i class="fas fa-map-marker-alt me-2"></i>Dakar, Sénégal</li>
-                    <li><i class="fas fa-phone me-2"></i>+221 77 123 45 67</li>
-                    <li><i class="fas fa-envelope me-2"></i>contact@maboutique.sn</li>
+                    <li class="mb-2">
+                        <i class="fas fa-map-marker-alt me-2 text-danger"></i>
+                        Dakar, Sénégal
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-phone me-2 text-success"></i>
+                        +221 77 123 45 67
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-envelope me-2 text-primary"></i>
+                        <a href="mailto:contact@maboutique.sn" class="text-decoration-none text-dark">
+                            contact@maboutique.sn
+                        </a>
+                    </li>
                 </ul>
+                
+                {% if current_user.is_authenticated and current_user.is_super_admin() %}
+                <div class="mt-3 p-2 bg-warning bg-opacity-25 rounded">
+                    <small>
+                        <i class="fas fa-crown me-1"></i>
+                        <strong>Super Admin</strong> - Accès à toutes les boutiques
+                    </small>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
     
     <div class="text-center p-3 bg-dark text-white">
-        © {{ now.year }} Ma Boutique. Tous droits réservés.
+        <p class="mb-0">
+            © {{ now.year }} 
+            {% if current_user.is_authenticated and current_user.shop %}
+                {{ current_user.shop.name }}
+            {% else %}
+                MA BOUTIQUE
+            {% endif %}
+            . Tous droits réservés. | Version 2.0 - Multi-boutiques
+        </p>
     </div>
 </footer>

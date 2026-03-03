@@ -2,19 +2,24 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from app import db
 from app.models.client import Client
+from app.models.shop import Shop
 from app.forms.client_forms import ClientForm
-from app.utils.helpers import role_required
+from app.utils.helpers import role_required, shop_active_required
 
 client_bp = Blueprint('client', __name__, url_prefix='/clients')
 
 @client_bp.route('/')
 @login_required
+@shop_active_required
 def list_clients():
-    """Liste tous les clients"""
+    """Liste tous les clients de la boutique"""
     page = request.args.get('page', 1, type=int)
     search = request.args.get('search', '')
     
-    query = Client.query
+    query = Client.query.join(Shop).filter(
+        Client.shop_id == current_user.shop_id,
+        Shop.is_active == True
+    )
     
     if search:
         query = query.filter(
@@ -33,6 +38,7 @@ def list_clients():
 @client_bp.route('/ajouter', methods=['GET', 'POST'])
 @login_required
 @role_required('admin', 'manager')
+@shop_active_required
 def add_client():
     """Ajouter un nouveau client"""
     form = ClientForm()
@@ -44,6 +50,7 @@ def add_client():
             email=form.email.data,
             phone=form.phone.data,
             address=form.address.data,
+            shop_id=current_user.shop_id,
             created_by=current_user.id
         )
         
@@ -58,9 +65,15 @@ def add_client():
 @client_bp.route('/modifier/<int:id>', methods=['GET', 'POST'])
 @login_required
 @role_required('admin', 'manager')
+@shop_active_required
 def edit_client(id):
     """Modifier un client"""
-    client = Client.query.get_or_404(id)
+    client = Client.query.join(Shop).filter(
+        Client.id == id,
+        Client.shop_id == current_user.shop_id,
+        Shop.is_active == True
+    ).first_or_404()
+    
     form = ClientForm(obj=client)
     
     if form.validate_on_submit():
@@ -80,14 +93,19 @@ def edit_client(id):
 @client_bp.route('/supprimer/<int:id>')
 @login_required
 @role_required('admin')
+@shop_active_required
 def delete_client(id):
     """Supprimer un client"""
-    client = Client.query.get_or_404(id)
+    client = Client.query.join(Shop).filter(
+        Client.id == id,
+        Client.shop_id == current_user.shop_id,
+        Shop.is_active == True
+    ).first_or_404()
     
-    # Vérifier si le client a des commandes (quand Order sera créé)
-    # if client.orders:
-    #     flash('Impossible de supprimer : le client a des commandes', 'danger')
-    #     return redirect(url_for('client.list_clients'))
+    # Vérifier si le client a des commandes
+    if client.orders:
+        flash('Impossible de supprimer : le client a des commandes', 'danger')
+        return redirect(url_for('client.list_clients'))
     
     db.session.delete(client)
     db.session.commit()
@@ -97,12 +115,16 @@ def delete_client(id):
 
 @client_bp.route('/<int:id>')
 @login_required
+@shop_active_required
 def view_client(id):
     """Voir les détails d'un client"""
-    client = Client.query.get_or_404(id)
+    client = Client.query.join(Shop).filter(
+        Client.id == id,
+        Client.shop_id == current_user.shop_id,
+        Shop.is_active == True
+    ).first_or_404()
     
-    # À décommenter quand Order sera créé
-    # orders = client.orders.order_by(Order.created_at.desc()).limit(10).all()
-    orders = []  # Temporaire
+    # Récupérer les commandes du client
+    orders = client.orders
     
     return render_template('clients/view.html', client=client, orders=orders)

@@ -33,8 +33,20 @@ def create_app(config_name='default'):
     sess.init_app(app)
     
     # Configuration de Flask-Login
-    login_manager.login_view = 'auth.login'  # Redirection vers login
+    login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Veuillez vous connecter pour accéder à cette page'
+    
+    # ⭐ IMPORTANT: User loader pour Flask-Login
+    from app.models.user import User
+    
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
+    
+    # Ajouter des variables globales aux templates
+    @app.context_processor
+    def inject_now():
+        return {'now': datetime.utcnow()}
     
     # Enregistrement des blueprints
     from app.routes.main_routes import main_bp
@@ -46,7 +58,10 @@ def create_app(config_name='default'):
     from app.routes.order_routes import order_bp
     from app.routes.dashboard_routes import dashboard_bp
     from app.routes.report_routes import report_bp
+    from app.routes.shop_routes import shop_bp
     
+    
+    app.register_blueprint(shop_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(category_bp)
@@ -57,13 +72,8 @@ def create_app(config_name='default'):
     app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
     app.register_blueprint(report_bp, url_prefix='/rapports')
     
-    # Ajouter des variables globales aux templates
-    @app.context_processor
-    def inject_now():
-        return {'now': datetime.utcnow()}
-    
-    # Import des modèles (important pour Flask-Migrate)
-    from app.models import user, category, product, stock_movement, client, order, order_item
+    # Import des modèles
+    from app.models import user, shop, category, product, stock_movement, client, order, order_item
     
     # Création des tables si elles n'existent pas
     with app.app_context():

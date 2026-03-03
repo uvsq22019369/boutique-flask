@@ -9,9 +9,12 @@ class Client(db.Model):
     # Informations personnelles
     first_name = db.Column(db.String(100), nullable=False)
     last_name = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=True)
+    email = db.Column(db.String(120), nullable=True)
     phone = db.Column(db.String(20), nullable=False)
     address = db.Column(db.Text, nullable=True)
+    
+    # ⭐ Multi-boutiques
+    shop_id = db.Column(db.Integer, db.ForeignKey('shops.id'), nullable=False)
     
     # Statistiques
     total_purchases = db.Column(db.Float, default=0)  # Montant total des achats
@@ -19,12 +22,15 @@ class Client(db.Model):
     last_purchase_date = db.Column(db.DateTime, nullable=True)
     
     # Traçabilité
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'))
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
     
-    # Relations (à décommenter quand Order sera créé)
-    # orders = db.relationship('Order', backref='client', lazy=True)
+    # Relations
+    orders = db.relationship('Order', backref='related_client', lazy=True, cascade='all, delete-orphan')
+    
+    # Contrainte d'unicité : un client doit avoir un téléphone unique dans une boutique
+    __table_args__ = (db.UniqueConstraint('phone', 'shop_id', name='unique_phone_per_shop'),)
     
     @property
     def full_name(self):

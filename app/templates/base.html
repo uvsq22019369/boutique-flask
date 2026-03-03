@@ -19,6 +19,12 @@
     
     <!-- Favicon (optionnel) -->
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    
+    <!-- Variables globales pour les templates -->
+    <script>
+        window.shopName = "{% if current_user.is_authenticated and current_user.shop %}{{ current_user.shop.name }}{% else %}Ma Boutique{% endif %}";
+        window.isSuperAdmin = {% if current_user.is_authenticated and current_user.is_super_admin() %}true{% else %}false{% endif %};
+    </script>
 </head>
 <body>
     <!-- Navigation -->
@@ -52,10 +58,10 @@
     <!-- Notre JS personnalisé -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     
-    <!-- Bloc pour les scripts supplémentaires (comme les graphiques spécifiques) -->
+    <!-- Bloc pour les scripts supplémentaires -->
     {% block scripts %}{% endblock %}
     
-    <!-- Fallback pour Chart.js (au cas où) -->
+    <!-- Fallback pour Chart.js -->
     <script>
         if (typeof Chart === 'undefined') {
             console.log("⚠️ Chart.js non chargé, chargement manuel...");
